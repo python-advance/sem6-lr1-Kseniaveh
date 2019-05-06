@@ -1,5 +1,4 @@
 import pandas as pd
-import re
 
 """
    Какое количество мужчин и женщин ехало на параходе? 
@@ -81,8 +80,13 @@ def corr_Pirson(x, y):
 
 """
     Какое самое популярное мужское имя на корабле?
+    Какое самое популярное женское имя на корабле?
+    Какое самое популярное мужское имя на корабле старше 15 лет?
+    Какое самое популярное женское имя на корабле старше 15 лет?
+    Какое самое популярное имя среди всех на корабле старше 15 лет?
 """
 def get_name(name):
+    import re
     # Первое слово до запятой - фамилия
     fam = re.search('^[^,]+, (.*)', name)
     if fam:
@@ -94,14 +98,35 @@ def get_name(name):
         name = fam.group(1)
  
     # Удаляем обращения
-    name = re.sub('(Master\. |Mr\. |Mrs\. )', '', name)
+    name = re.sub('(Master\. |Mr\. |Mrs\. |Miss\. )', '', name)
 
     # Берем первое оставшееся слово и удаляем кавычки
     name = name.split(' ')[0].replace('"', '')
 
     return name
-names = data[data['Sex'] == 'male']['Name'].map(get_name)
-name_counts = names.value_counts()
-#print(name_counts.head(1).index.values[0])
+
+def get_favorite_name(dataset,sex,age):
+    if (dataset is None):
+        return ''
+    names = dataset[data['Age'] > age]['Name'].map(get_name)
+    #print(names)
+    if (sex=='male' or sex=='female'):
+        names = dataset[data['Sex'] == sex][data['Age'] > age]['Name'].map(get_name)
+    name_counts = names.value_counts()
+    if(name_counts.count()>0):
+        return name_counts.head(1).index.values[0]
+    return ''
+
+
+print('\n')
+data = pd.read_csv('train.csv')
+
+print('Самые популярные имена старше 15 лет')
+#Самое популярное имя среди мужчин старше 15 лет
+print('У мужчин - '+get_favorite_name(data,'male',15))
+#Самое популярное имя среди женщин старше 15 лет
+print('У женщин - '+get_favorite_name(data,'female',15))
+#Самое популярное имя среди всех старше 15 лет
+print('Среди всех - '+get_favorite_name(data,'',15))
 
 
